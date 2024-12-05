@@ -1,0 +1,31 @@
+#map { height: 100vh;width: 100vw; }
+
+
+
+.leaflet-control-search-input {
+    position: absolute;
+    top: 10px;
+    left: 70px;
+    z-index: 1000;
+}
+
+
+.leaflet-control-results-control-input {
+    position: absolute;
+    bottom: 150px;
+    left: 10px;
+    z-index: 1000;
+}
+
+.results-returned{
+    background: rgb(138, 138, 202);
+    color:black;
+}
+
+
+.search-input{
+    background: #acb8eb;
+    color:black;
+    width: 200px;
+    height: 30px;
+}

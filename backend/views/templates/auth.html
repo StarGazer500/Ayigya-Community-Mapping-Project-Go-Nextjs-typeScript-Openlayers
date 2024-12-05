@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Page</title>
+
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/staticfiles/css/auth.css">
+
+    
+    
+
+</head>
+<body>
+
+    <div class ="row">
+        <div class="col-md-6 mx-auto p-5 d-flex justify-content-center align-items-center">
+            <div class="card">
+    <div class="login-box">
+        <div class="login-snip">
+            <input id="tab-1" type="radio" name="tab" class="sign-in" checked><label for="tab-1" class="tab">Login</label>
+            <input id="tab-2" type="radio" name="tab" class="sign-up"><label for="tab-2" class="tab">Sign Up</label>
+            <div class="login-space">
+               
+                {{template "login.html" .}} 
+
+                 {{template "signup.html" .}} 
+
+               
+               
+            </div>
+        </div>
+    </div>   
+    </div>
+    </div>window.location.href = response.redirect;
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+    
+          
+                // Handle the Sign Up form submission
+                $('#signup-submit').click(function (e) {
+                    e.preventDefault(); // Prevent default form submission
+                    
+                    // Collect the data from the signup form
+                    var signupData = {
+                        email: $('.sign-up-form input[name="email"]').val().trim(),
+                        password1: $('.sign-up-form input[name="password1"]').val().trim(),
+                        password2: $('.sign-up-form input[name="password2"]').val().trim(),
+                        firstname: $('.sign-up-form input[name="firstname"]').val().trim(),
+                        surname: $('.sign-up-form input[name="surname"]').val().trim()
+                    };
+
+                    console.log(signupData)
+
+                    // Perform the Ajax request for Signup
+                    $.ajax({
+                        url: '/account/register', // Your server-side signup URL
+                        type: 'POST',
+                        dataType: 'json', // Expecting JSON response
+                        contentType: 'application/json',
+                        data: JSON.stringify(signupData),
+                        success: function (response) {
+                            // Handle the success response
+                            alert("Signup successful!");
+                        },
+                        error: function (xhr, status, error) {
+                            // Handle the error response
+                            var errorMessage = xhr.responseJSON ? xhr.responseJSON.error : 'An error occurred.';
+                            alert("Error: " + errorMessage);
+                        }
+                    });
+                });
+
+    
+            // Handle the Login form submission
+            $('#login-submit').click(function (e) {
+                e.preventDefault(); // Prevent default form submission
+    
+                // Collect the data from the login form
+                var loginData = {
+                    email: $('.login input[name="email"]').val().trim(),
+                    password1: $('.login input[name="password1"]').val().trim()
+                };
+
+                console.log(loginData)
+    
+                // Perform the Ajax request for Login
+                $.ajax({
+                    url: '/account/login', // Your server-side login URL
+                    type: 'POST',
+                    // dataType: 'json', // Expecting JSON response
+                    contentType: 'application/json',
+                    data: JSON.stringify(loginData),
+                    success: function (response) {
+                        // Handle the response (success)
+                        if (response.success) {
+                            // alert("Login successful!");
+                            window.location.href = response.redirect;
+
+                        } else {
+                            alert("Error: " + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        // Handle the error
+                        var errorMessage = xhr.responseJSON ? xhr.responseJSON.error : 'An error occurred.';
+                            alert("Error: " + errorMessage);
+                    }
+                });
+            });
+        });
+    </script>
+    
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    
+    <!-- Then add Bootstrap JS bundle (includes Popper.js and Bootstrap JS) -->
+    <script src="https://stacbootstrap.bundle.min.js"></script>
+
+
+    
+</body>
+</body>
+</html>
