@@ -51,6 +51,8 @@ function SimpleQuery({addLayerToMap, setSimpleQueryResults,setIsTableViewOpen,ma
                 console.log("No data found or data is not an array.");
                 return []; // Return an empty array if no valid data
               }
+
+              setSimpleQueryResults(data.length)
           
               if (geojsonLayer) {
                 map.removeLayer(geojsonLayer);
@@ -84,7 +86,7 @@ function SimpleQuery({addLayerToMap, setSimpleQueryResults,setIsTableViewOpen,ma
                 if (item.geom) {
                   const geoJsonLayer = L.geoJSON(item.geom, {
                     style: function (feature) {
-                      return { color: 'blue' }; // You can customize the style here
+                      return { color: 'red' }; // You can customize the style here
                     },
                     onEachFeature: function (feature, layer) {
                       // Dynamically generate popup content
@@ -133,7 +135,7 @@ function SimpleQuery({addLayerToMap, setSimpleQueryResults,setIsTableViewOpen,ma
               return geoJsonLayerGroup;
           
             } catch (error) {
-              console.error("Error fetching GeoJSON data:", error);
+              console.log("Error fetching GeoJSON data:", error);
               return []; // Return an empty array in case of error
             } finally {
               console.log("Map projection:", 'EPSG:3857'); // Leaflet uses Web Mercator by default

@@ -10,6 +10,8 @@ import { Map as LeafletMap } from "leaflet";
 
 import QueryPanel from "@/app/mapview/components/querypanelcomponent"
 import SimpleQuery from "@/app/mapview/components/simplesearchcomponent"
+import DetailsTableView  from "@/app/mapview/components/tableviewcomponents"
+// import LayerSwitcher from "@/app/mapview/components/layerswitcher"
 
 const { BaseLayer } = LayersControl;
 
@@ -104,10 +106,10 @@ const Map = ({ posix, zoom = defaults.zoom }: MapProps) => {
             </MapContainer>
             </div>
              {/* <Legend  map={mapRef.current} />  */}
-            {simpleQueryResults?<div ><h2 style={{color:"white"}} className='absolute z-[9000] font-bold  bg-red-500 p-1 rounded-md  bottom-2 left-2'>{simpleQueryResults} Results Returned</h2></div>:null} 
+            {simpleQueryResults?<div ><h2 style={{color:"white"}} className='absolute z-[9000] font-bold  bg-red-500 p-1 rounded-md  bottom-6 left-2'>{simpleQueryResults} Results Returned</h2></div>:null} 
             </div>
         </div>
-        {/* {isTableViewOpen?<DetailsTableView map = {mapRef.current} tableColumnNames = {tableColumnNames} tableData= {tableData}/>:null} */}
+        {isTableViewOpen?<DetailsTableView map = {mapRef.current} tableColumnNames = {tableColumnNames} tableData= {tableData}/>:null}
       </div>
     </div>
   );

@@ -4,10 +4,6 @@ import { Map as LeafletMap } from "leaflet";
 // import WMSCapabilities from 'wms-capabilities'
 
 
-
-
-
-
 function QueryPanel({addLayerToMap ,setIsTableViewOpen,results,setResults,tableData,setTableColumnNames,tableColumnNames,seTableData,isOpen,map}) {
   const [selectedAttribute, setSelectedAttribute] = useState('None');
   const [selectedFeatureLayer, setSelectedFeatureLayer] = useState('All Feature Layers');
@@ -74,7 +70,7 @@ function QueryPanel({addLayerToMap ,setIsTableViewOpen,results,setResults,tableD
           console.log("attributes",response_data.data );
         })
         .catch(error => {
-          console.error('Unknown error occurred:', error.message);
+          console.log('Unknown error occurred:', error.message);
         });
    
    
@@ -176,7 +172,7 @@ async function getAllData(path: string, map: LeafletMap): Promise<any> {
       console.log("No data found or data is not an array.");
       return []; // Return an empty array if no valid data
     }
-  
+    setResults(data.length)
 
     if (geojsonLayer) {
       map.removeLayer(geojsonLayer);
@@ -208,8 +204,9 @@ async function getAllData(path: string, map: LeafletMap): Promise<any> {
       // Ensure item.geom exists and is valid
       if (item.geom) {
         const geoJsonLayer = L.geoJSON(item.geom, {
+          title: item.TableName ,
           style: function (feature) {
-            return { color: 'blue' }; // You can customize the style here
+            return { color: 'red' }; // You can customize the style here
           },
           onEachFeature: function (feature, layer) {
             // Dynamically generate popup content
@@ -291,6 +288,21 @@ async function getDataByColumn(path: string,table:string,column:string, map: Lea
       return []; // Return an empty array if no valid data
     }
 
+    setResults(data.length)
+    
+    seTableData(data);
+    setIsTableViewOpen(true)
+
+    
+    
+
+    // Set table column names from the first record (you can adjust this logic)
+    const columns = Object.keys(data[0]).map((key) => ({
+      name: formatKey(key)
+    }));
+
+    setTableColumnNames(columns);
+
     if (geojsonLayer) {
       map.removeLayer(geojsonLayer);
       // layerControl.removeLayer(geoJsonLayerGroup);
@@ -316,14 +328,16 @@ async function getDataByColumn(path: string,table:string,column:string, map: Lea
       };
       return formatMap[key] || value;
     }
+    // console.log("selectedlayer",selectedFeatureLayer)
 
     // Iterate over the data to create GeoJSON layers
     data.forEach((item: any) => {
       // Ensure item.geom exists and is valid
       if (item.geom) {
         const geoJsonLayer = L.geoJSON(item.geom, {
+          title: item.TableName ,
           style: function (feature) {
-            return { color: 'blue' }; // You can customize the style here
+            return { color: 'red' }; // You can customize the style here
           },
           onEachFeature: function (feature, layer) {
             // Dynamically generate popup content
@@ -408,6 +422,22 @@ async function getDataByTableClummnValue(path: string,table:string,column:string
       return []; // Return an empty array if no valid data
     }
 
+    setResults(data.length)
+
+    seTableData(data);
+    setIsTableViewOpen(true)
+
+    
+    
+
+    // Set table column names from the first record (you can adjust this logic)
+    const columns = Object.keys(data[0]).map((key) => ({
+      name: formatKey(key)
+    }));
+
+    setTableColumnNames(columns);
+
+
     if (geojsonLayer) {
       map.removeLayer(geojsonLayer);
       // layerControl.removeLayer(geoJsonLayerGroup);
@@ -439,8 +469,9 @@ async function getDataByTableClummnValue(path: string,table:string,column:string
       // Ensure item.geom exists and is valid
       if (item.geom) {
         const geoJsonLayer = L.geoJSON(item.geom, {
+          title: item.TableName ,
           style: function (feature) {
-            return { color: 'blue' }; // You can customize the style here
+            return { color: 'red'}; // You can customize the style here
           },
           onEachFeature: function (feature, layer) {
             // Dynamically generate popup content
@@ -526,6 +557,21 @@ async function getDataByTable(path: string,table:string, map: LeafletMap): Promi
       return []; // Return an empty array if no valid data
     }
 
+    setResults(data.length)
+
+    seTableData(data);
+    setIsTableViewOpen(true)
+
+    
+    
+
+    // Set table column names from the first record (you can adjust this logic)
+    const columns = Object.keys(data[0]).map((key) => ({
+      name: formatKey(key)
+    }));
+
+    setTableColumnNames(columns);
+
     if (geojsonLayer) {
       map.removeLayer(geojsonLayer);
       // layerControl.removeLayer(geoJsonLayerGroup);
@@ -556,9 +602,11 @@ async function getDataByTable(path: string,table:string, map: LeafletMap): Promi
     data.forEach((item: any) => {
       // Ensure item.geom exists and is valid
       if (item.geom) {
+        console.log("name",item.TableName)
         const geoJsonLayer = L.geoJSON(item.geom, {
+          title: item.TableName ,
           style: function (feature) {
-            return { color: 'blue' }; // You can customize the style here
+            return { color: 'red' }; // You can customize the style here
           },
           onEachFeature: function (feature, layer) {
             // Dynamically generate popup content
@@ -837,7 +885,7 @@ async function SetOperations(attribute:any){
       console.log("operators",response_data.data );
     })
     .catch(error => {
-      console.error('Unknown error occurred:', error.message);
+      console.log('Unknown error occurred:', error.message);
     });
 }
 
@@ -951,8 +999,8 @@ async function SetOperations(attribute:any){
         <label htmlFor="results" className="mb-2">Number of Results Returned:</label>
         <input 
           id="results" 
-        //   value={results}
-        //   onChange={handleResultsChange}
+          value={results}
+          onChange={handleResultsChange}
           className="border rounded p-2 mb-2"
         />
 

@@ -3,13 +3,31 @@ import L from 'leaflet';
 
 const DetailsTableView = ({ tableData, tableColumnNames, map }) => {
   const [selectedFeatureId, setSelectedFeatureId] = useState(null);
-  const tableRef = useRef<any>(null);
-  const highlightLayerRef = useRef<any>(null);
+  const tableRef = useRef(null);
+  const highlightLayerRef = useRef(null);
+
+  function formatValue(key: string, value: any): any {
+    if (value && typeof value === 'object') {
+      // Check if it's a GeoJSON-like object (or any object you expect)
+      if (value.type && value.coordinates) {
+        return 'GeoJSON Object';  // You can customize how you want to display it
+      }
+      // For general objects, you can either stringify or show some other representation
+      return JSON.stringify(value);
+    }
+  
+    const formatMap = {
+      'shape__len': `${value} meters`,
+      'shape__are': `${value} sq meters`,
+      'creationda': value ? new Date(value).toLocaleDateString() : value
+    };
+  
+    return formatMap[key] || value;
+  }
 
   useEffect(() => {
     if (!map) return;
 
-    
     highlightLayerRef.current = L.layerGroup().addTo(map);
 
     const handleMapClick = (event) => {
@@ -59,7 +77,6 @@ const DetailsTableView = ({ tableData, tableColumnNames, map }) => {
     if (feature && highlightLayerRef.current) {
       highlightLayerRef.current.clearLayers();
 
-      // Clone the feature to create a highlight
       let highlightedFeature;
       if (feature instanceof L.Polygon || feature instanceof L.Polyline) {
         highlightedFeature = L.GeoJSON.geometryToLayer(feature.toGeoJSON());
@@ -68,7 +85,6 @@ const DetailsTableView = ({ tableData, tableColumnNames, map }) => {
       }
 
       if (highlightedFeature) {
-        // Apply highlight style
         highlightedFeature.setStyle({
           color: '#FF0000',
           weight: 3,
@@ -79,7 +95,6 @@ const DetailsTableView = ({ tableData, tableColumnNames, map }) => {
         highlightLayerRef.current.addLayer(highlightedFeature);
       }
 
-      // Fit the map to the bounds of the feature
       if (feature.getBounds) {
         map.fitBounds(feature.getBounds(), { padding: [50, 50] });
       } else if (feature instanceof L.Marker) {
@@ -116,25 +131,31 @@ const DetailsTableView = ({ tableData, tableColumnNames, map }) => {
 
   return (
     <div className="h-1/4 z-[5000] bg-gray-800 w-full overflow-hidden relative">
-      {/* Table Header */}
-      <div className="overflow-hidden">
-        <table className="text-white w-full border-collapse">
-          <thead className="bg-gray-900 sticky top-0 z-10">
-            <tr>
-              {tableColumnNames.map((column, index) => (
-                <th key={index} className="border border-white p-2">{column.name}</th>
-              ))}
-            </tr>
-          </thead>
-        </table>
-      </div>
+  {/* Table Header */}
+  <div className="overflow-hidden">
+    <table className="text-white w-full border-collapse">
+      <thead className="bg-gray-900 sticky top-0 z-10">
+        <tr>
+          {tableColumnNames
+            .filter((column) => !column.name.toLowerCase().includes("geom")) // Filter out columns containing "Geom"
+            .map((column, index) => (
+              <th key={index} className="border border-white p-2">
+                {column.name}
+              </th>
+            ))}
+        </tr>
+      </thead>
+    </table>
+  </div>
 
       {/* Scrollable Table Body */}
       <div className="overflow-y-auto h-full" ref={tableRef} style={{ maxHeight: 'calc(100% - 40px)' }}>
         <table className="text-white w-full border-collapse">
           <tbody>
             {tableData.map((feature, rowIndex) => {
-              const featureId = feature.properties.id || feature.id;
+              const featureId = feature?.properties?.id || feature?.id; // Check feature properties for id
+              if (!featureId) return null; // Skip if no feature id
+
               return (
                 <tr
                   key={rowIndex}
@@ -147,11 +168,13 @@ const DetailsTableView = ({ tableData, tableColumnNames, map }) => {
                   onClick={() => handleRowClick(feature)}
                   style={{ cursor: 'pointer' }}
                 >
-                  {tableColumnNames.map((column, colIndex) => (
-                    <td key={colIndex} className="border text-black border p-2">
-                      {feature.properties[column.name] !== undefined ? feature.properties[column.name] : 'N/A'}
-                    </td>
-                  ))}
+                {Object.keys(feature)
+                .filter((key) => !key.toLowerCase().includes("geom")) // Filter out data columns containing "Geom"
+                .map((key, columnIndex) => (
+                  <td key={`${featureId}-${columnIndex}`} className="border text-black border p-2">
+                    {key !== undefined ? formatValue(key, feature[key]) : 'N/A'}
+                  </td>
+                ))}
                 </tr>
               );
             })}
