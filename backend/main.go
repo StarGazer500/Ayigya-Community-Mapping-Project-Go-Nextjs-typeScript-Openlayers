@@ -10,8 +10,10 @@ import (
 	"fmt"
 	"github.com/pressly/goose/v3"
 	"github.com/StarGazer500/ayigya/routers"
+	"github.com/StarGazer500/ayigya/middlewares"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	
 )
 
 func init() {
@@ -59,6 +61,7 @@ func main() {
 		}
 
 		engine := gin.Default()
+		engine.Use(middlewares.CorsMiddleware())
 
 		// Set up account routes
 		accountGroup := engine.Group("/account")
@@ -68,10 +71,7 @@ func main() {
 		routers.MapRoutes(mapGroup)
 
 		// Load HTML templates (make sure the template path is correct)
-		engine.LoadHTMLGlob("./views/templates/*.html")
-
-		// Serve static files (adjust the paths if necessary)
-		engine.Static("/staticfiles", "./views/staticfiles")
+	
 
 		// Start the server
 		engine.Run(":8080") // This starts the server on http://localhost:8080

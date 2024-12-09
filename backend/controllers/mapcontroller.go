@@ -2,11 +2,12 @@ package controllers
 
 import (
 	// "fmt"
-	"github.com/StarGazer500/ayigya/inits/db"
-	"github.com/StarGazer500/ayigya/models"
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/StarGazer500/ayigya/inits/db"
+	"github.com/StarGazer500/ayigya/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,7 +33,7 @@ func FeatureLayers(ctx *gin.Context) {
 			BuildingTable:     models.BuildingTable.TableName, // Assuming these are valid
 			OtherPolygonTable: models.OtherPolygonTable.TableName,
 		}
-
+		fmt.Println(availfeatlarys)
 		// Send the JSON response
 		ctx.JSON(http.StatusOK, gin.H{
 			"success": true,
@@ -454,3 +455,220 @@ func SimpleSearch(ctx *gin.Context) {
 	}
 
 }
+
+func SearchAllFeaturesData(ctx *gin.Context) {
+	fmt.Println("controller reached")
+	if ctx.Request.Method == http.MethodPost {
+		fmt.Println("controller reached")
+		// Extract the raw request body
+		
+
+		// Define a map to hold the raw JSON data
+		
+
+		
+
+		// Extract selectedLayer from requestData
+
+
+		data, searcherr := models.SearchAllTables1(db.PG.Db)
+
+		if searcherr != nil {
+
+			fmt.Println("operation error", searcherr)
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "You Operation not successful",
+			})
+			return
+
+		}
+
+		fmt.Println(data)
+
+		// operationsJSON, operr := json.Marshal(operators)
+		// if operr != nil {
+
+		// 	fmt.Println("operator eror", operr)
+		// 	ctx.JSON(http.StatusBadRequest, gin.H{
+		// 		"success": false,
+		// 		"message": "Operator Error",
+		// 	})
+
+		// }
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "query successful",
+			"data":    data,
+		})
+
+	} else {
+		// If the request method is not POST, return an error
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid HTTP method, expected POST",
+		})
+	}
+
+}
+
+
+func SearchByColumn(ctx *gin.Context) {
+	fmt.Println("controller reached")
+	if ctx.Request.Method == http.MethodPost {
+		fmt.Println("controller reached")
+		// Extract the raw request body
+		rawData, err := ctx.GetRawData()
+		if err != nil {
+			// If there's an error reading the body, return a bad request response
+			fmt.Println("rawdata", rawData)
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "Failed to read the request body",
+			})
+			return
+		}
+
+		// Define a map to hold the raw JSON data
+		var requestData map[string]interface{}
+
+		// Unmarshal the raw JSON data into the map
+		if err := json.Unmarshal(rawData, &requestData); err != nil {
+			// If there's an error unmarshalling the data, return an error response
+			fmt.Println(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "Invalid JSON format",
+			})
+			return
+		}
+
+		fmt.Println("received data", requestData)
+		fmt.Println(models.BuildingTable)
+
+		// Extract selectedLayer from requestData
+		selectedAtribute, exists := requestData["selectedAttribute"].(string)
+		selectedLayer, exists2 := requestData["selectedLayer"].(string)
+		
+		if !exists || !exists2{
+			// If no selectedLayer is found, return an error
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "You are required to select featurelayer,attribute,operator and enter search value",
+			})
+			return
+		}
+
+		data, searcherr := models.SearchByColumn(db.PG.Db, selectedLayer, selectedAtribute)
+
+		if searcherr != nil {
+
+			fmt.Println("operation error", searcherr)
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "You Operation not successful",
+			})
+			return
+
+		}
+
+		fmt.Println(data)
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "query successful",
+			"data":    data,
+		})
+
+	} else {
+		// If the request method is not POST, return an error
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid HTTP method, expected POST",
+		})
+	}
+
+}
+
+
+
+func SearchByFeatureLayer(ctx *gin.Context) {
+	fmt.Println("controller reached")
+	if ctx.Request.Method == http.MethodPost {
+		fmt.Println("controller reached")
+		// Extract the raw request body
+		rawData, err := ctx.GetRawData()
+		if err != nil {
+			// If there's an error reading the body, return a bad request response
+			fmt.Println("rawdata", rawData)
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "Failed to read the request body",
+			})
+			return
+		}
+
+		// Define a map to hold the raw JSON data
+		var requestData map[string]interface{}
+
+		// Unmarshal the raw JSON data into the map
+		if err := json.Unmarshal(rawData, &requestData); err != nil {
+			// If there's an error unmarshalling the data, return an error response
+			fmt.Println(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "Invalid JSON format",
+			})
+			return
+		}
+
+		fmt.Println("received data", requestData)
+		fmt.Println(models.BuildingTable)
+
+		// Extract selectedLayer from requestData
+	
+		selectedLayer, exists2 := requestData["selectedLayer"].(string)
+		
+		if !exists2{
+			// If no selectedLayer is found, return an error
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "You are required to select featurelayer,attribute,operator and enter search value",
+			})
+			return
+		}
+
+		data, searcherr := models.SearchByTable(db.PG.Db, selectedLayer)
+
+		if searcherr != nil {
+
+			fmt.Println("operation error", searcherr)
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "You Operation not successful",
+			})
+			return
+
+		}
+
+		fmt.Println(data)
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "query successful",
+			"data":    data,
+		})
+
+	} else {
+		// If the request method is not POST, return an error
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid HTTP method, expected POST",
+		})
+	}
+
+}
+
+
+

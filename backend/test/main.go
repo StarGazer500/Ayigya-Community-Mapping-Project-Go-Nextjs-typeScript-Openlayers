@@ -32,7 +32,7 @@ func main() {
 	// }
 
 
-	_,err := models.SearchAllTables(db.PG.Db, "comp")
+	_,err := models.SearchByTable(db.PG.Db,"building")
 	if err!=nil{
 		fmt.Println("error occured",err)
 	}else{

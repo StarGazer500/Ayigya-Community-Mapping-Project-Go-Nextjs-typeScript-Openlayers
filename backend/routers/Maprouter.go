@@ -12,6 +12,9 @@ func MapRoutes(route *gin.RouterGroup) {
 	route.POST("/featureattributes", controllers.FeatreAttributes)
 	route.POST("/featureoperatures", controllers.SelectOperator)
 	route.POST("/makeqquery", controllers.MakeQuery)
+	route.POST("/searchallfeaturelayersdata", controllers.SearchAllFeaturesData)
+	route.POST("/searchbyfeaturelayer", controllers.SearchByFeatureLayer)
+	route.POST("/searchbycolumn", controllers.SearchByColumn)
 	route.POST("/simplesearch", controllers.SimpleSearch)
-
+	
 }
