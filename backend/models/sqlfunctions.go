@@ -694,45 +694,76 @@ func SearchAllTables(db *sql.DB, searchTerm string) ([]map[string]interface{}, e
 
     // Loop through each row in the result
     var results []map[string]interface{}
+    var processedTables = make(map[string]bool)
+
     for rows.Next() {
         var tableName, columnName string
         if err := rows.Scan(&tableName, &columnName); err != nil {
-            return nil, err // Log the error and continue processing other tables
+            return nil, err
         }
 
-		
-
-		if tableName != "building" && tableName != "other_polygon_structure" {
-            // fmt.Println("Skipping table:", tableName) // Log which table is being skipped
-            continue // Skip this iteration and go to the next table
+        // Skip if table already processed or not in desired tables
+        if processedTables[tableName] || (tableName != "building" && tableName != "other_polygon_structure") {
+            continue
         }
 
-        // Modify query to use ILIKE for case-insensitive search
+        // Find all columns in the table to search
+        columnsQuery := fmt.Sprintf(`
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = '%s' 
+            AND (data_type LIKE '%%character%%' OR data_type LIKE '%%text%%')
+        `, tableName)
+
+        columnRows, err := db.Query(columnsQuery)
+        if err != nil {
+            fmt.Println("Error retrieving searchable columns for table:", tableName, err)
+            continue
+        }
+        defer columnRows.Close()
+
+        var searchColumns []string
+        for columnRows.Next() {
+            var colName string
+            if err := columnRows.Scan(&colName); err != nil {
+                fmt.Println("Error scanning column name:", err)
+                continue
+            }
+            searchColumns = append(searchColumns, colName)
+        }
+
+        // Construct dynamic search query
+        var searchConditions []string
+        for _, col := range searchColumns {
+            searchConditions = append(searchConditions, fmt.Sprintf(`"%s" ILIKE $1`, col))
+        }
+
+        if len(searchConditions) == 0 {
+            continue
+        }
+
         querystring := fmt.Sprintf(
-            `SELECT * FROM "%s" WHERE "%s" ILIKE $1`, 
+            `SELECT * FROM "%s" WHERE %s`, 
             tableName, 
-            columnName,
+            strings.Join(searchConditions, " OR "),
         )
 
         // Execute the query with the parameterized search term
         tableRows, err := db.Query(querystring, "%"+searchTerm+"%")
         if err != nil {
             fmt.Println("Error executing query for table:", tableName, err)
-            continue // Skip to the next table if this query fails
+            continue
         }
         defer tableRows.Close()
 
         columns, err := tableRows.Columns()
         if err != nil {
             fmt.Println("Error retrieving columns for table:", tableName, err)
-            continue // Skip to the next table if columns retrieval fails
+            continue
         }
 
         // Loop through the rows of the current table
         for tableRows.Next() {
-			// fmt.Println(tableName)
-			// fmt.Println("current table",tableName)
-			
             // Create a slice of empty interfaces to hold the row values
             columnPointers := make([]interface{}, len(columns))
             for i := range columnPointers {
@@ -742,7 +773,7 @@ func SearchAllTables(db *sql.DB, searchTerm string) ([]map[string]interface{}, e
             // Scan the row into the column pointers
             if err := tableRows.Scan(columnPointers...); err != nil {
                 fmt.Println("Error scanning row for table:", tableName, err)
-                continue // Skip this row if there's an error scanning it
+                continue
             }
 
             // Convert the row to a map
@@ -773,6 +804,9 @@ func SearchAllTables(db *sql.DB, searchTerm string) ([]map[string]interface{}, e
             results = append(results, result)
         }
 
+        // Mark table as processed
+        processedTables[tableName] = true
+
         // Check if there was an error during row iteration
         if err := tableRows.Err(); err != nil {
             fmt.Println("Error during row iteration for table:", tableName, err)
@@ -785,16 +819,16 @@ func SearchAllTables(db *sql.DB, searchTerm string) ([]map[string]interface{}, e
     }
 
     // Return the results after iterating through all tables
-	fmt.Println(results)
+    fmt.Println(results)
     return results, nil
 }
 
 func SearchAllTables1(db *sql.DB) ([]map[string]interface{}, error) {
     // Query to get all table names and column names from the information schema
     query := `
-        SELECT table_name, column_name
-        FROM information_schema.columns
-        WHERE table_schema = 'public'
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name IN ('building', 'other_polygon_structure')
     `
 
     rows, err := db.Query(query)
@@ -806,8 +840,8 @@ func SearchAllTables1(db *sql.DB) ([]map[string]interface{}, error) {
     // Loop through each row in the result
     var results []map[string]interface{}
     for rows.Next() {
-        var tableName, columnName string
-        if err := rows.Scan(&tableName, &columnName); err != nil {
+        var tableName string
+        if err := rows.Scan(&tableName); err != nil {
             return nil, err // Log the error and continue processing other tables
         }
 

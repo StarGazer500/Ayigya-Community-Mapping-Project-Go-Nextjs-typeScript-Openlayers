@@ -8,6 +8,7 @@ function SimpleQuery({addLayerToMap, setSimpleQueryResults,setIsTableViewOpen,ma
     const [layerColor, setLayerColor] = useState('rgba(255, 0, 0, 1)'); 
     const [geojsonLayer, setGeojsonLayer] = useState<any>(null);
     const [bounds,setBounds] = useState()
+    // const [keyPressed,set[keyPressed] = useState<string>("")
    
     const serverbaseurl = "http://localhost:8080"
 
@@ -16,11 +17,12 @@ function SimpleQuery({addLayerToMap, setSimpleQueryResults,setIsTableViewOpen,ma
     };
 
     useEffect(() => {
-        if (bounds) {
+        if (geojsonLayer) {
             // Make sure bounds are valid before calling fitBounds
-            map.fitBounds(bounds);
+            geojsonLayer.addTo(map);
+            map.fitBounds(geojsonLayer.getBounds(), { padding: [50, 50], maxZoom: 15 });
         }
-      }, [bounds])
+      }, [geojsonLayer])
 
     const baseUrl = 'http://localhost:8080/geoserver/nurc/ows';
 
@@ -124,10 +126,10 @@ function SimpleQuery({addLayerToMap, setSimpleQueryResults,setIsTableViewOpen,ma
           
               // Add the feature group to the map
               setGeojsonLayer(geoJsonLayerGroup)
-              geoJsonLayerGroup.addTo(map);
+              
           
               // Optionally, zoom to the bounds of the GeoJSON layer
-              map.fitBounds(geoJsonLayerGroup.getBounds(), { padding: [50, 50], maxZoom: 15 });
+             
           
               console.log("GeoJSON data retrieved and layers added:", data.length);
           
